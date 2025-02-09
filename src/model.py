@@ -72,7 +72,7 @@ counters = {
     "Fireball": ["Archers", "Musketeer", "Magic Archer"],
     "Arrows": ["Swarm Units", "Minions", "Goblin Gang"],
     "Zap": ["Skeleton Army", "Inferno Dragon", "Bats"],
-    "Log": ["Goblin Barrel", "Skeleton Army", "Goblin Gang"]
+    "Log": ["Goblin Barrel", "Skeleton Army", "Goblin Gang, Goblins"]
 }
 
 # Save the counters to a JSON file
