@@ -42,3 +42,4 @@ def perform_action(action):
 
     # Optionally add some random delays to mimic human actions
     time.sleep(1)
+
