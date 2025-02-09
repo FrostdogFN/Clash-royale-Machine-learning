@@ -1,5 +1,5 @@
-import model
-import utils
+import src.model as model
+import src.utils as utils
 import pyautogui
 import time
 

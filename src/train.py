@@ -1,8 +1,8 @@
 # train.py
 # Training script for the Clash Royale AI
 
-import model
-import utils
+import src.model as model
+import src.utils as utils
 import tensorflow as tf
 from reinforcement_learning import DQNAgent
 
