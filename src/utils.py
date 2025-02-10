@@ -3,11 +3,21 @@ import pyautogui
 import time
 import numpy as np
 import logging
+import random
+import subprocess
 from mss import mss
 from PIL import Image
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    filename="clash_royale_ai.log"
+)
+
+# Chromebook-specific settings
+CHROME_OFFSET_X = 0  # Adjust based on your Linux window position
+CHROME_OFFSET_Y = 30  # Compensate for title bar
 
 class Humanizer:
     def __init__(self):
@@ -79,13 +89,29 @@ def perform_action(action: str):
     humanizer.human_delay()
 
     if action == 'attack':
-        x, y = humanizer.human_position(100, 200)  # Example coordinates
-        pyautogui.click(x, y)
+        x, y = humanizer.human_position(100 + CHROME_OFFSET_X, 200 + CHROME_OFFSET_Y)
+        subprocess.run(['xdotool', 'mousemove', str(x), str(y)])
+        subprocess.run(['xdotool', 'click', '1'])  # Left click
     elif action == 'defend':
-        x, y = humanizer.human_position(300, 400)  # Example coordinates
-        pyautogui.click(x, y)
+        x, y = humanizer.human_position(300 + CHROME_OFFSET_X, 400 + CHROME_OFFSET_Y)
+        subprocess.run(['xdotool', 'mousemove', str(x), str(y)])
+        subprocess.run(['xdotool', 'click', '1'])
     elif action == 'move':
-        x, y = humanizer.human_position(500, 600)  # Example coordinates
-        pyautogui.moveTo(x, y)
+        x, y = humanizer.human_position(500 + CHROME_OFFSET_X, 600 + CHROME_OFFSET_Y)
+        subprocess.run(['xdotool', 'mousemove', str(x), str(y)])
     else:
         logging.warning(f"Unknown action: {action}")
+
+def get_elixir_cost(card: str) -> int:
+    """
+    Get the elixir cost for a given card.
+    :param card: Card name
+    :return: Elixir cost (default: 3 if not found)
+    """
+    elixir_costs = {
+        "archers": 3,
+        "knight": 3,
+        "fireball": 4,
+        # Add more cards as needed
+    }
+    return elixir_costs.get(card.lower(), 3)
