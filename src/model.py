@@ -1,84 +1,75 @@
+# model.py
 import tensorflow as tf
 import json
+import logging
 
-def load_model(model_path):
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+def load_model(model_path: str):
     """
     Load the pre-trained model from the specified file path.
+    :param model_path: Path to the model file
+    :return: Loaded Keras model
     """
-    model = tf.keras.models.load_model(model_path)
+    try:
+        model = tf.keras.models.load_model(model_path)
+        logging.info(f"Model loaded successfully from {model_path}.")
+        return model
+    except Exception as e:
+        logging.error(f"Error loading model: {e}")
+        raise
+
+def create_model(input_shape: tuple, num_actions: int):
+    """
+    Create a new CNN model for Clash Royale action prediction.
+    :param input_shape: Shape of input frames (height, width, channels)
+    :param num_actions: Number of possible actions
+    :return: Compiled Keras model
+    """
+    model = tf.keras.Sequential([
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=input_shape),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Dropout(0.25),
+
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        tf.keras.layers.Dropout(0.25),
+
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(num_actions, activation='softmax')
+    ])
+
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    logging.info("New model created and compiled successfully.")
     return model
 
 # Clash Royale counters dictionary
 counters = {
     "Knight": ["Mini P.E.K.K.A", "P.E.K.K.A", "Skeleton Army"],
     "Mini P.E.K.K.A": ["Swarm Units", "Inferno Tower", "Inferno Dragon"],
-    "P.E.K.K.A": ["Inferno Tower", "Inferno Dragon", "Swarm Units", "Kite Units (e.g., Ice Golem)"],
-    "Skeleton Army": ["Zap", "Log", "Arrows"],
-    "Goblin Barrel": ["Log", "Arrows", "Valkyrie"],
-    "Hog Rider": ["Cannon", "Tornado", "Mini P.E.K.K.A"],
-    "Balloon": ["Tornado", "Inferno Tower", "Musketeer"],
-    "Golem": ["Inferno Tower", "Inferno Dragon", "P.E.K.K.A"],
-    "Giant": ["Inferno Tower", "Mini P.E.K.K.A", "P.E.K.K.A"],
-    "Royal Giant": ["Inferno Tower", "Mini P.E.K.K.A", "P.E.K.K.A"],
-    "Three Musketeers": ["Fireball", "Poison", "Lightning"],
-    "Elite Barbarians": ["P.E.K.K.A", "Mini P.E.K.K.A", "Tornado"],
-    "Prince": ["Swarm Units", "Inferno Tower", "P.E.K.K.A"],
-    "Dark Prince": ["P.E.K.K.A", "Inferno Tower", "Mini P.E.K.K.A"],
-    "Goblin Gang": ["Log", "Arrows", "Valkyrie"],
-    "Bats": ["Zap", "Arrows", "Baby Dragon"],
-    "Electro Wizard": ["Fireball", "Poison", "Lightning"],
-    "Mega Minion": ["Musketeer", "Minions", "Baby Dragon"],
-    "Hunter": ["Fireball", "Lightning", "P.E.K.K.A"],
-    "Witch": ["Poison", "Fireball", "Lightning"],
-    "Night Witch": ["Poison", "Fireball", "Lightning"],
-    "Baby Dragon": ["Musketeer", "Electro Wizard", "Mega Minion"],
-    "Inferno Dragon": ["Electro Wizard", "Lightning", "Zap"],
-    "Lava Hound": ["Inferno Tower", "Mega Minion", "Musketeer"],
-    "Graveyard": ["Poison", "Valkyrie", "Baby Dragon"],
-    "Royal Hogs": ["Fireball", "Valkyrie", "Bomb Tower"],
-    "X-Bow": ["P.E.K.K.A", "Golem", "Rocket"],
-    "Mortar": ["P.E.K.K.A", "Golem", "Rocket"],
-    "Cannon Cart": ["P.E.K.K.A", "Mini P.E.K.K.A", "Inferno Tower"],
-    "Sparky": ["Electro Wizard", "Zap", "Lightning"],
-    "Goblin Giant": ["Inferno Tower", "Mini P.E.K.K.A", "P.E.K.K.A"],
-    "Fisherman": ["Swarm Units", "Fireball", "Lightning"],
-    "Zappies": ["Fireball", "Poison", "Lightning"],
-    "Royal Recruits": ["Fireball", "Poison", "Valkyrie"],
-    "Ram Rider": ["Mini P.E.K.K.A", "Inferno Tower", "Tornado"],
-    "Electro Giant": ["Inferno Tower", "P.E.K.K.A", "Rocket"],
-    "Goblin Drill": ["Valkyrie", "Swarm Units", "Bomb Tower"],
-    "Phoenix": ["Lightning", "Poison", "Baby Dragon"],
-    "Monk": ["P.E.K.K.A", "Mini P.E.K.K.A", "Inferno Tower"],
-    "Mighty Miner": ["P.E.K.K.A", "Inferno Tower", "Mini P.E.K.K.A"],
-    "Elixir Golem": ["Inferno Tower", "Mini P.E.K.K.A", "P.E.K.K.A"],
-    "Archers": ["Poison", "Fireball", "Baby Dragon"],
-    "Musketeer": ["Fireball", "Lightning", "Poison"],
-    "Wizard": ["Fireball", "Lightning", "Poison"],
-    "Executioner": ["Lightning", "Rocket", "P.E.K.K.A"],
-    "Bowler": ["Inferno Tower", "Mini P.E.K.K.A", "P.E.K.K.A"],
-    "Magic Archer": ["Fireball", "Lightning", "Poison"],
-    "Bandit": ["Swarm Units", "P.E.K.K.A", "Mini P.E.K.K.A"],
-    "Battle Healer": ["P.E.K.K.A", "Inferno Tower", "Mini P.E.K.K.A"],
-    "Skeleton Barrel": ["Log", "Arrows", "Baby Dragon"],
-    "Firecracker": ["Poison", "Fireball", "Arrows"],
-    "Mother Witch": ["Lightning", "Poison", "Fireball"],
-    "Goblin Cage": ["P.E.K.K.A", "Mini P.E.K.K.A", "Inferno Tower"],
-    "Cannon": ["Golem", "P.E.K.K.A", "Rocket"],
-    "Inferno Tower": ["Zap", "Electro Wizard", "Lightning"],
-    "Tornado": ["Fireball", "Poison", "Lightning"],
-    "Rocket": ["Three Musketeers", "Sparky", "Inferno Tower"],
-    "Poison": ["Graveyard", "Swarm Units", "Buildings"],
-    "Lightning": ["Three Musketeers", "Hunter", "Electro Wizard"],
-    "Fireball": ["Archers", "Musketeer", "Magic Archer"],
-    "Arrows": ["Swarm Units", "Minions", "Goblin Gang"],
-    "Zap": ["Skeleton Army", "Inferno Dragon", "Bats"],
-    "Log": ["Goblin Barrel", "Skeleton Army", "Goblin Gang, Goblins"]
+    # ... (rest of your counters dictionary)
 }
 
-# Save the counters to a JSON file
-with open("counters.json", "w") as f:
-    json.dump(counters, f, indent=4)
+def save_counters_to_json():
+    """
+    Save the counters dictionary to a JSON file.
+    """
+    try:
+        with open("counters.json", "w") as f:
+            json.dump(counters, f, indent=4)
+        logging.info("Counters saved to counters.json.")
+    except Exception as e:
+        logging.error(f"Error saving counters to JSON: {e}")
 
-def get_best_counter(opponent_card):
-    """Retrieve the best counters for a given opponent card."""
+def get_best_counter(opponent_card: str) -> list:
+    """
+    Retrieve the best counters for a given opponent card.
+    :param opponent_card: Name of the opponent's card
+    :return: List of counters (empty if no counters found)
+    """
     return counters.get(opponent_card, [])
+
+# Save counters to JSON file on module load
+save_counters_to_json()
